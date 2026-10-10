@@ -1,1 +1,789 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warden Bot - The Ultimate Security & Moderation Bot for Discord</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        warden: {
+                            900: '#070b19',
+                            800: '#0d1527',
+                            700: '#15223c',
+                            600: '#1e3056',
+                            cyan: '#00f2fe',
+                            blue: '#4facfe',
+                            red: '#ff3366',
+                            purple: '#9d4edd'
+                        }
+                    },
+                    boxShadow: {
+                        'neon-cyan': '0 0 20px rgba(0, 242, 254, 0.3)',
+                        'neon-red': '0 0 20px rgba(255, 51, 102, 0.3)',
+                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts & FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #070b19;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .glass-panel {
+            background: rgba(13, 21, 39, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-panel-glow-cyan {
+            background: rgba(13, 21, 39, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 242, 254, 0.3);
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.15);
+        }
+        .glass-panel-glow-red {
+            background: rgba(13, 21, 39, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 51, 102, 0.3);
+            box-shadow: 0 0 25px rgba(255, 51, 102, 0.15);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #9d4edd 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gradient-text-alert {
+            background: linear-gradient(135deg, #ff3366 0%, #ff6b6b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #070b19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e3056;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4facfe;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        .animate-glow {
+            animation: pulseGlow 4s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-warden-900 min-h-screen relative selection:bg-warden-cyan selection:text-warden-900">
 
+    <!-- Ambient Background Lighting -->
+    <div class="absolute top-0 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none animate-glow"></div>
+    <div class="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none animate-glow" style="animation-delay: 2s;"></div>
+    <div class="absolute bottom-1/4 left-1/3 w-96 h-96 bg-red-600/10 rounded-full blur-3xl pointer-events-none animate-glow" style="animation-delay: 1s;"></div>
+
+    <!-- Navigation Bar -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-warden-cyan to-warden-blue p-0.5 shadow-neon-cyan flex items-center justify-center">
+                    <div class="w-full h-full bg-warden-900 rounded-[10px] flex items-center justify-center">
+                        <i class="fa-solid fa-shield-halved text-warden-cyan text-xl"></i>
+                    </div>
+                </div>
+                <span class="text-xl font-extrabold tracking-tight text-white">WARDEN<span class="text-warden-cyan">.BOT</span></span>
+            </div>
+            
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-300">
+                <a href="#features" class="hover:text-warden-cyan transition-colors">Features</a>
+                <a href="#commands" class="hover:text-warden-cyan transition-colors">Commands</a>
+                <a href="#simulator" class="hover:text-warden-cyan transition-colors">Live Demo</a>
+                <a href="#setup" class="hover:text-warden-cyan transition-colors">Setup Guide</a>
+                <a href="https://discord.com" target="_blank" class="hover:text-warden-cyan transition-colors">Support Server</a>
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <a href="#simulator" class="hidden sm:inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-semibold text-warden-cyan border border-warden-cyan/30 bg-warden-cyan/10 hover:bg-warden-cyan/20 transition-all shadow-neon-cyan">
+                    <i class="fa-solid fa-terminal"></i>
+                    <span>Test Widget</span>
+                </a>
+                <a href="https://discord.com" target="_blank" class="flex items-center space-x-2 px-5 py-2.5 rounded-xl text-sm font-bold text-slate-900 bg-gradient-to-r from-warden-cyan to-warden-blue hover:opacity-90 transition-all shadow-lg shadow-cyan-500/25">
+                    <i class="fa-brands fa-discord text-lg"></i>
+                    <span>Add to Discord</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative pt-20 pb-32 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            
+            <!-- Pill Notification -->
+            <div class="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full glass-panel border border-warden-cyan/30 text-xs font-semibold text-warden-cyan mb-8 shadow-neon-cyan">
+                <span class="w-2 h-2 rounded-full bg-warden-cyan animate-ping"></span>
+                <span>v4.8 Stable Release — Enhanced Anti-Nuke Security Layers Live</span>
+                <i class="fa-solid fa-arrow-right ml-1"></i>
+            </div>
+
+            <!-- Main Heading -->
+            <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white mb-6 leading-tight">
+                The Ultimate <span class="gradient-text">Security & Moderation</span> Bot for Discord.
+            </h1>
+
+            <p class="max-w-3xl mx-auto text-lg sm:text-xl text-slate-400 mb-10 leading-relaxed">
+                Protect your community with military-grade Anti-Nuke shielding, intelligent AutoMod filters, instant audit logging, and lightning-fast moderator commands.
+            </p>
+
+            <!-- CTA Buttons -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
+                <a href="https://discord.com" target="_blank" class="w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-slate-900 bg-gradient-to-r from-warden-cyan to-warden-blue hover:opacity-95 transition-all shadow-xl shadow-cyan-500/30 flex items-center justify-center space-x-3 text-base">
+                    <i class="fa-brands fa-discord text-2xl"></i>
+                    <span>Invite Warden to Discord</span>
+                </a>
+                <a href="#commands" class="w-full sm:w-auto px-8 py-4 rounded-2xl font-bold text-white glass-panel hover:bg-warden-700/50 transition-all border border-white/10 flex items-center justify-center space-x-3 text-base">
+                    <i class="fa-solid fa-terminal text-warden-cyan"></i>
+                    <span>Explore Command Directory</span>
+                </a>
+            </div>
+
+            <!-- Quick Stats Badges -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+                <div class="glass-panel p-6 rounded-2xl border border-white/5 hover:border-warden-cyan/40 transition-all">
+                    <div class="text-3xl sm:text-4xl font-extrabold gradient-text mb-1">125+</div>
+                    <div class="text-xs sm:text-sm text-slate-400 font-medium">Advanced Commands</div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl border border-white/5 hover:border-warden-cyan/40 transition-all">
+                    <div class="text-3xl sm:text-4xl font-extrabold text-warden-cyan mb-1">99.9%</div>
+                    <div class="text-xs sm:text-sm text-slate-400 font-medium">Uptime Guarantee</div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl border border-white/5 hover:border-warden-cyan/40 transition-all">
+                    <div class="text-3xl sm:text-4xl font-extrabold gradient-text-alert mb-1">Active</div>
+                    <div class="text-xs sm:text-sm text-slate-400 font-medium">Anti-Nuke Shielding</div>
+                </div>
+                <div class="glass-panel p-6 rounded-2xl border border-white/5 hover:border-warden-cyan/40 transition-all">
+                    <div class="text-3xl sm:text-4xl font-extrabold text-warden-blue mb-1">1.4M+</div>
+                    <div class="text-xs sm:text-sm text-slate-400 font-medium">Protected Users</div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Features & AutoMod Suite -->
+    <section id="features" class="py-24 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-xs sm:text-sm font-bold tracking-widest uppercase text-warden-cyan mb-3">Core Protection Suite</h2>
+                <h3 class="text-3xl sm:text-4xl font-extrabold text-white mb-4">Engineered for Uncompromising Security</h3>
+                <p class="text-slate-400">Warden operates 24/7 in the background inspecting payloads, filtering malicious links, and neutralizing threats before they hit your channels.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                
+                <!-- Feature 1: Anti-Nuke Shield -->
+                <div class="glass-panel p-8 rounded-3xl border border-white/10 hover:border-warden-cyan/50 transition-all group relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-warden-cyan/5 rounded-full blur-2xl group-hover:bg-warden-cyan/20 transition-all"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-warden-cyan/20 to-warden-blue/20 border border-warden-cyan/30 flex items-center justify-center text-warden-cyan text-2xl mb-6 shadow-neon-cyan group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-shield-virus"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-3">Anti-Nuke Shield</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Rapid destructive action protection. Instantly detects mass channel deletions, unauthorized bot additions, and role spam, automatically quarantining the offender.
+                    </p>
+                    <div class="flex items-center space-x-2 text-xs font-semibold text-warden-cyan">
+                        <i class="fa-solid fa-bolt"></i>
+                        <span>Instant Quarantine Protocol</span>
+                    </div>
+                </div>
+
+                <!-- Feature 2: Profanity & Slang Filter -->
+                <div class="glass-panel p-8 rounded-3xl border border-white/10 hover:border-warden-red/50 transition-all group relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-warden-red/5 rounded-full blur-2xl group-hover:bg-warden-red/20 transition-all"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-warden-red/20 to-pink-600/20 border border-warden-red/30 flex items-center justify-center text-warden-red text-2xl mb-6 shadow-neon-red group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-filter-circle-xmark"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-3">Profanity & Slang Filter</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Advanced NLP text analysis with automated 7-day timeouts, message deletion, and customizable automated DM warning notices sent directly to the user.
+                    </p>
+                    <div class="flex items-center space-x-2 text-xs font-semibold text-warden-red">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>Automated 7-Day Timeout</span>
+                    </div>
+                </div>
+
+                <!-- Feature 3: Anti-Invite Link Shield -->
+                <div class="glass-panel p-8 rounded-3xl border border-white/10 hover:border-warden-cyan/50 transition-all group relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-warden-cyan/5 rounded-full blur-2xl group-hover:bg-warden-cyan/20 transition-all"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-warden-cyan/20 to-warden-blue/20 border border-warden-cyan/30 flex items-center justify-center text-warden-cyan text-2xl mb-6 shadow-neon-cyan group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-link-slash"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-3">Anti-Invite Link Shield</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Stops server poachers dead in their tracks. Instant kick or ban for unauthorized Discord server invite links with secure audit logging.
+                    </p>
+                    <div class="flex items-center space-x-2 text-xs font-semibold text-warden-cyan">
+                        <i class="fa-solid fa-ban"></i>
+                        <span>Zero-Tolerance Poach Guard</span>
+                    </div>
+                </div>
+
+                <!-- Feature 4: Anti-Spam Flood Control -->
+                <div class="glass-panel p-8 rounded-3xl border border-white/10 hover:border-warden-blue/50 transition-all group relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-warden-blue/5 rounded-full blur-2xl group-hover:bg-warden-blue/20 transition-all"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-warden-blue/20 to-indigo-600/20 border border-warden-blue/30 flex items-center justify-center text-warden-blue text-2xl mb-6 shadow-neon-cyan group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-wave-square"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-3">Anti-Spam Flood Control</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        High-frequency message isolation detects rapid-fire emoji spam, duplicate text flooding, and mentions raid attacks within milliseconds.
+                    </p>
+                    <div class="flex items-center space-x-2 text-xs font-semibold text-warden-blue">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        <span>Sub-millisecond Isolation</span>
+                    </div>
+                </div>
+
+                <!-- Feature 5: Autorole & Helper System -->
+                <div class="glass-panel p-8 rounded-3xl border border-white/10 hover:border-warden-purple/50 transition-all group relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-warden-purple/5 rounded-full blur-2xl group-hover:bg-warden-purple/20 transition-all"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-500/20 to-warden-purple/20 border border-warden-purple/30 flex items-center justify-center text-warden-purple text-2xl mb-6 shadow-lg group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-user-gear"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-3">Autorole & Helper System</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Seamless onboarding role management with tiered staff permissions, custom reaction roles, and automated welcome messages.
+                    </p>
+                    <div class="flex items-center space-x-2 text-xs font-semibold text-warden-purple">
+                        <i class="fa-solid fa-users-rectangle"></i>
+                        <span>Tiered Staff Permissions</span>
+                    </div>
+                </div>
+
+                <!-- Feature 6: Advanced Logging & Audits -->
+                <div class="glass-panel p-8 rounded-3xl border border-white/10 hover:border-warden-cyan/50 transition-all group relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-warden-cyan/5 rounded-full blur-2xl group-hover:bg-warden-cyan/20 transition-all"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-warden-cyan/20 to-warden-blue/20 border border-warden-cyan/30 flex items-center justify-center text-warden-cyan text-2xl mb-6 shadow-neon-cyan group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-file-shield"></i>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-3">Encrypted Audit Logs</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Comprehensive persistent logging channels recording every edit, deletion, ban, timeout, and configuration change with exact timestamps.
+                    </p>
+                    <div class="flex items-center space-x-2 text-xs font-semibold text-warden-cyan">
+                        <i class="fa-solid fa-lock"></i>
+                        <span>Tamper-Proof History</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Command Directory -->
+    <section id="commands" class="py-24 bg-warden-800/50 border-y border-white/5 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <h2 class="text-xs sm:text-sm font-bold tracking-widest uppercase text-warden-cyan mb-3">Command Directory</h2>
+                <h3 class="text-3xl sm:text-4xl font-extrabold text-white mb-4">Complete Control at Your Fingertips</h3>
+                <p class="text-slate-400">Search through Warden's robust suite of public utilities and secure administrative commands.</p>
+            </div>
+
+            <!-- Search Bar & Category Filter -->
+            <div class="max-w-4xl mx-auto mb-10 flex flex-col sm:flex-row gap-4 items-center justify-between">
+                <div class="relative w-full sm:w-96">
+                    <i class="fa-solid fa-search absolute left-4 top-3.5 text-slate-400"></i>
+                    <input type="text" id="commandSearch" placeholder="Search commands (e.g. ban, nuke, setup)..." 
+                           class="w-full bg-warden-900 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-warden-cyan transition-colors">
+                </div>
+                <div class="flex items-center space-x-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
+                    <button onclick="filterCommands('all')" class="cmd-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-warden-cyan text-warden-900 transition-all shadow-neon-cyan whitespace-nowrap">All</button>
+                    <button onclick="filterCommands('public')" class="cmd-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-warden-700 text-slate-300 hover:text-white transition-all whitespace-nowrap">Public Tools</button>
+                    <button onclick="filterCommands('admin')" class="cmd-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-warden-700 text-slate-300 hover:text-white transition-all whitespace-nowrap">Secure Admin</button>
+                </div>
+            </div>
+
+            <!-- Command Cards Container -->
+            <div id="commandGrid" class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <!-- Populated via JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Bot Configuration Preview / Live Demo -->
+    <section id="simulator" class="py-24 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-xs sm:text-sm font-bold tracking-widest uppercase text-warden-cyan mb-3">Live Simulation Widget</h2>
+                <h3 class="text-3xl sm:text-4xl font-extrabold text-white mb-4">Test Warden's Embed Notifications</h3>
+                <p class="text-slate-400">Simulate running security commands and preview real-time automated embed notices and shield logs.</p>
+            </div>
+
+            <div class="max-w-4xl mx-auto glass-panel rounded-3xl border border-white/10 overflow-hidden shadow-2xl">
+                <!-- Widget Header / Discord Channel Bar -->
+                <div class="bg-warden-800 px-6 py-4 border-b border-white/10 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <i class="fa-solid fa-hashtag text-slate-400 text-lg"></i>
+                        <span class="font-bold text-white">warden-security-logs</span>
+                        <span class="hidden sm:inline-block text-xs bg-warden-cyan/10 text-warden-cyan px-2 py-0.5 rounded border border-warden-cyan/20">Secure Channel</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
+                        <span class="w-3 h-3 rounded-full bg-yellow-500/80 inline-block"></span>
+                        <span class="w-3 h-3 rounded-full bg-green-500/80 inline-block"></span>
+                    </div>
+                </div>
+
+                <!-- Simulation Action Toolbar -->
+                <div class="p-6 bg-warden-900/60 border-b border-white/10 flex flex-wrap gap-3 items-center justify-between">
+                    <div class="text-xs font-semibold text-slate-400">Select Test Simulation:</div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="runSimulation('punishment')" class="sim-btn px-4 py-2 rounded-xl text-xs font-bold bg-warden-cyan text-warden-900 shadow-neon-cyan transition-all">Test Punish DM</button>
+                        <button onclick="runSimulation('automod')" class="sim-btn px-4 py-2 rounded-xl text-xs font-semibold bg-warden-700 text-slate-300 hover:text-white transition-all">AutoMod Shield Log</button>
+                        <button onclick="runSimulation('antinuke')" class="sim-btn px-4 py-2 rounded-xl text-xs font-semibold bg-warden-700 text-slate-300 hover:text-white transition-all">Anti-Nuke Alert</button>
+                        <button onclick="runSimulation('lockdown')" class="sim-btn px-4 py-2 rounded-xl text-xs font-semibold bg-warden-700 text-slate-300 hover:text-white transition-all">Server Lockdown</button>
+                    </div>
+                </div>
+
+                <!-- Simulated Discord Embed Output Display -->
+                <div id="simOutput" class="p-6 sm:p-8 bg-warden-900 min-h-[320px] flex items-center justify-center">
+                    <!-- Default State -->
+                    <div class="text-center text-slate-500 py-12">
+                        <i class="fa-solid fa-shield-halved text-4xl mb-3 text-warden-cyan/40 animate-bounce"></i>
+                        <p class="text-sm">Click a test button above to simulate Warden's response embed.</p>
+                    </div>
+                </div>
+
+                <!-- Simulated Chat Input Bar -->
+                <div class="p-4 bg-warden-800/80 border-t border-white/10 flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-warden-700 flex items-center justify-center text-slate-400">
+                        <i class="fa-solid fa-plus"></i>
+                    </div>
+                    <div class="flex-1 bg-warden-900 rounded-xl px-4 py-3 text-sm text-slate-400 code-font border border-white/5 flex items-center justify-between">
+                        <span>/help command: warden-security</span>
+                        <i class="fa-regular fa-face-smile text-slate-500"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Setup & Getting Started Guide -->
+    <section id="setup" class="py-24 bg-warden-800/50 border-t border-white/5 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <h2 class="text-xs sm:text-sm font-bold tracking-widest uppercase text-warden-cyan mb-3">Deployment Guide</h2>
+                <h3 class="text-3xl sm:text-4xl font-extrabold text-white mb-4">Set Up Warden in 3 Simple Steps</h3>
+                <p class="text-slate-400">Configure military-grade protection for your community in under 2 minutes.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+                
+                <!-- Step 1 -->
+                <div class="glass-panel p-8 rounded-3xl border border-white/10 relative">
+                    <div class="absolute -top-4 -left-4 w-10 h-10 rounded-xl bg-gradient-to-tr from-warden-cyan to-warden-blue font-extrabold text-slate-900 flex items-center justify-center shadow-neon-cyan text-lg">1</div>
+                    <h4 class="text-xl font-bold text-white mb-3 mt-2">Invite & Authorize</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Add Warden to your server with Administrator permissions required for managing security overrides and role hierarchies.
+                    </p>
+                    <div class="code-font text-xs bg-warden-900 p-3 rounded-xl border border-white/5 text-warden-cyan">
+                        Permissions: Manage Server, Ban, Kick, Manage Roles
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="glass-panel p-8 rounded-3xl border border-white/10 relative">
+                    <div class="absolute -top-4 -left-4 w-10 h-10 rounded-xl bg-gradient-to-tr from-warden-cyan to-warden-blue font-extrabold text-slate-900 flex items-center justify-center shadow-neon-cyan text-lg">2</div>
+                    <h4 class="text-xl font-bold text-white mb-3 mt-2">Configure Audit Channel</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Set up your dedicated logging channel to receive real-time alerts for warnings, mutes, bans, and anti-nuke triggers.
+                    </p>
+                    <div class="code-font text-xs bg-warden-900 p-3 rounded-xl border border-white/5 text-warden-cyan">
+                        !setup-log #mod-logs
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="glass-panel p-8 rounded-3xl border border-white/10 relative">
+                    <div class="absolute -top-4 -left-4 w-10 h-10 rounded-xl bg-gradient-to-tr from-warden-cyan to-warden-blue font-extrabold text-slate-900 flex items-center justify-center shadow-neon-cyan text-lg">3</div>
+                    <h4 class="text-xl font-bold text-white mb-3 mt-2">Enable AutoMod Suite</h4>
+                    <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                        Activate anti-invite filters, profanity timeout guard, and anti-spam flood control with a single command.
+                    </p>
+                    <div class="code-font text-xs bg-warden-900 p-3 rounded-xl border border-white/5 text-warden-cyan">
+                        !automod-setup enable
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="glass-panel border-t border-white/10 py-16 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-warden-cyan to-warden-blue p-0.5 shadow-neon-cyan flex items-center justify-center">
+                        <div class="w-full h-full bg-warden-900 rounded-[10px] flex items-center justify-center">
+                            <i class="fa-solid fa-shield-halved text-warden-cyan text-xl"></i>
+                        </div>
+                    </div>
+                    <span class="text-xl font-extrabold tracking-tight text-white">WARDEN<span class="text-warden-cyan">.BOT</span></span>
+                </div>
+                
+                <div class="flex items-center space-x-8 text-sm text-slate-400 font-medium">
+                    <a href="#features" class="hover:text-warden-cyan transition-colors">Features</a>
+                    <a href="#commands" class="hover:text-warden-cyan transition-colors">Commands</a>
+                    <a href="#simulator" class="hover:text-warden-cyan transition-colors">Live Demo</a>
+                    <a href="#setup" class="hover:text-warden-cyan transition-colors">Setup</a>
+                    <a href="https://discord.com" target="_blank" class="hover:text-warden-cyan transition-colors">Discord</a>
+                </div>
+            </div>
+
+            <div class="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+                <div>&copy; 2026 Warden Bot. All rights reserved. Developed by <span class="text-warden-cyan font-semibold">jabin_gpt</span>.</div>
+                <div class="flex items-center space-x-6">
+                    <a href="#" class="hover:text-slate-400 transition-colors">Privacy Policy</a>
+                    <a href="#" class="hover:text-slate-400 transition-colors">Terms of Service</a>
+                    <a href="#" class="hover:text-slate-400 transition-colors">Security Audit</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Command Database
+        const commandsData = [
+            {
+                name: "!ban",
+                slash: "/ban",
+                category: "admin",
+                desc: "Permanently bans a user from the server and purges their recent message history.",
+                syntax: "!ban @user [reason]"
+            },
+            {
+                name: "!kick",
+                slash: "/kick",
+                category: "admin",
+                desc: "Removes a user from the server with an optional recorded audit log reason.",
+                syntax: "!kick @user [reason]"
+            },
+            {
+                name: "!mute",
+                slash: "/mute",
+                category: "admin",
+                desc: "Applies a timed mute restriction preventing text and voice channel participation.",
+                syntax: "!mute @user 1h [reason]"
+            },
+            {
+                name: "!warn",
+                slash: "/warn",
+                category: "admin",
+                desc: "Issues an official strike warning logged to the user's permanent moderation profile.",
+                syntax: "!warn @user [reason]"
+            },
+            {
+                name: "!purge",
+                slash: "/purge",
+                category: "admin",
+                desc: "Bulk deletes messages in the current channel up to 100 messages at once.",
+                syntax: "!purge [1-100]"
+            },
+            {
+                name: "!nuke",
+                slash: "/nuke",
+                category: "admin",
+                desc: "Clones and replaces the current channel to instantly wipe malicious message floods.",
+                syntax: "!nuke [confirm]"
+            },
+            {
+                name: "!lock / !unlock",
+                slash: "/lockchannel",
+                category: "admin",
+                desc: "Locks or unlocks @everyone send-message permissions in the current channel.",
+                syntax: "!lock [channel]"
+            },
+            {
+                name: "!lockdown",
+                slash: "/lockdown",
+                category: "admin",
+                desc: "Initiates a full server lockdown preventing all unverified users from chatting.",
+                syntax: "!lockdown [enable/disable]"
+            },
+            {
+                name: "!automod-setup",
+                slash: "/automod-setup",
+                category: "admin",
+                desc: "Configures automated filters for profanity, slurs, and spam links.",
+                syntax: "!automod-setup [profile]"
+            },
+            {
+                name: "!setup-log",
+                slash: "/setup-log",
+                category: "admin",
+                desc: "Designates the secure audit logging channel for bot alerts and infractions.",
+                syntax: "!setup-log #channel"
+            },
+            {
+                name: "!dm",
+                slash: "/dm",
+                category: "admin",
+                desc: "Sends a secure direct message to a user originating from the moderation team.",
+                syntax: "!dm @user [message]"
+            },
+            {
+                name: "!trust",
+                slash: "/trust",
+                category: "admin",
+                desc: "Bypasses AutoMod filters for trusted community members or bots.",
+                syntax: "!trust @user [add/remove]"
+            },
+            {
+                name: "!botban",
+                slash: "/botban",
+                category: "admin",
+                desc: "Blacklists a rogue bot user from executing integrations on your server.",
+                syntax: "!botban @bot [reason]"
+            },
+            {
+                name: "!config",
+                slash: "/config",
+                category: "admin",
+                desc: "Displays the active security configuration summary for your Discord server.",
+                syntax: "!config"
+            },
+            {
+                name: "!hide / !unhide",
+                slash: "/channel-visibility",
+                category: "admin",
+                desc: "Toggles visibility of a specific channel for the @everyone role.",
+                syntax: "!hide [channel]"
+            },
+            {
+                name: "!helper",
+                slash: "/helper",
+                category: "public",
+                desc: "Displays interactive help documentation and command usage guides.",
+                syntax: "!helper [command]"
+            },
+            {
+                name: "!help",
+                slash: "/help",
+                category: "public",
+                desc: "General help command listing public utilities and support resources.",
+                syntax: "!help"
+            }
+        ];
+
+        let currentFilter = 'all';
+
+        function renderCommands(filter = 'all', searchQuery = '') {
+            const grid = document.getElementById('commandGrid');
+            grid.innerHTML = '';
+
+            const filtered = commandsData.filter(cmd => {
+                const matchesFilter = filter === 'all' || cmd.category === filter;
+                const matchesSearch = cmd.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                      cmd.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                      cmd.syntax.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesFilter && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-2 text-center py-12 text-slate-500 text-sm">No commands found matching your criteria.</div>`;
+                return;
+            }
+
+            filtered.forEach(cmd => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel p-6 rounded-2xl border border-white/5 hover:border-warden-cyan/30 transition-all flex flex-col justify-between';
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="code-font text-base font-bold text-warden-cyan">${cmd.name}</span>
+                            <span class="text-xs px-2.5 py-1 rounded-lg ${cmd.category === 'admin' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'} font-semibold">
+                                ${cmd.category === 'admin' ? 'Secure Admin' : 'Public Tool'}
+                            </span>
+                        </div>
+                        <p class="text-slate-400 text-xs sm:text-sm mb-4 leading-relaxed">${cmd.desc}</p>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-500 mb-1 font-semibold uppercase tracking-wider">Syntax & Slash</div>
+                        <div class="code-font text-xs bg-warden-900 px-3 py-2 rounded-xl border border-white/5 text-slate-300 flex items-center justify-between">
+                            <span>${cmd.syntax}</span>
+                            <span class="text-warden-cyan text-[10px]">${cmd.slash}</span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterCommands(category) {
+            currentFilter = category;
+            document.querySelectorAll('.cmd-filter-btn').forEach(btn => {
+                btn.className = 'cmd-filter-btn px-4 py-2 rounded-xl text-xs font-semibold bg-warden-700 text-slate-300 hover:text-white transition-all whitespace-nowrap';
+            });
+            event.target.className = 'cmd-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-warden-cyan text-warden-900 shadow-neon-cyan transition-all whitespace-nowrap';
+            
+            const searchVal = document.getElementById('commandSearch').value;
+            renderCommands(category, searchVal);
+        }
+
+        document.getElementById('commandSearch').addEventListener('input', (e) => {
+            renderCommands(currentFilter, e.target.value);
+        });
+
+        // Live Simulation Logic
+        function runSimulation(type) {
+            document.querySelectorAll('.sim-btn').forEach(btn => {
+                btn.className = 'sim-btn px-4 py-2 rounded-xl text-xs font-semibold bg-warden-700 text-slate-300 hover:text-white transition-all';
+            });
+            event.target.className = 'sim-btn px-4 py-2 rounded-xl text-xs font-bold bg-warden-cyan text-warden-900 shadow-neon-cyan transition-all';
+
+            const output = document.getElementById('simOutput');
+            
+            let content = '';
+            if (type === 'punishment') {
+                content = `
+                    <div class="w-full max-w-lg glass-panel-glow-red rounded-2xl p-6 border-l-4 border-l-warden-red">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-warden-red/20 text-warden-red flex items-center justify-center font-bold text-sm">W</div>
+                            <div>
+                                <div class="text-xs font-bold text-white flex items-center space-x-2">
+                                    <span>WARDEN SECURITY BOT</span>
+                                    <span class="bg-warden-red/20 text-warden-red text-[10px] px-1.5 py-0.5 rounded">DIRECT MESSAGE</span>
+                                </div>
+                                <div class="text-[11px] text-slate-400">Today at 12:34 PM</div>
+                            </div>
+                        </div>
+                        <div class="text-sm text-slate-200 mb-4 bg-warden-900/80 p-4 rounded-xl border border-white/5">
+                            <p class="font-bold text-warden-red mb-1"><i class="fa-solid fa-triangle-exclamation mr-2"></i>Infraction Notice — CyberNet Gaming</p>
+                            <p class="text-xs text-slate-300 mb-3">You have been issued a 7-day timeout in <strong>CyberNet Gaming</strong> by moderator <span class="text-warden-cyan">Alex#0001</span>.</p>
+                            <div class="text-xs text-slate-400 border-t border-white/10 pt-2">
+                                <strong>Reason:</strong> Profanity and Slang Filter violation (Rule #4).
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 text-[11px] text-slate-400">
+                            <i class="fa-solid fa-shield-halved text-warden-red"></i>
+                            <span>Automated disciplinary notice. Appeals can be submitted via support ticket.</span>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'automod') {
+                content = `
+                    <div class="w-full max-w-lg glass-panel-glow-cyan rounded-2xl p-6 border-l-4 border-l-warden-cyan">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-warden-cyan/20 text-warden-cyan flex items-center justify-center font-bold text-sm">W</div>
+                            <div>
+                                <div class="text-xs font-bold text-white flex items-center space-x-2">
+                                    <span>AUTOMOD SHIELD LOG</span>
+                                    <span class="bg-cyan-500/20 text-cyan-400 text-[10px] px-1.5 py-0.5 rounded">FILTER TRIGGERED</span>
+                                </div>
+                                <div class="text-[11px] text-slate-400">Today at 12:35 PM</div>
+                            </div>
+                        </div>
+                        <div class="text-sm text-slate-200 mb-4 bg-warden-900/80 p-4 rounded-xl border border-white/5">
+                            <p class="font-bold text-warden-cyan mb-1"><i class="fa-solid fa-link-slash mr-2"></i>Anti-Invite Link Shield Blocked Message</p>
+                            <p class="text-xs text-slate-300 mb-3">User <span class="text-white font-semibold">ShadowRogue#9999</span> attempted to post unauthorized Discord invite link.</p>
+                            <div class="text-xs text-slate-400 border-t border-white/10 pt-2 space-y-1">
+                                <div><strong>Action Taken:</strong> Message deleted instantly & User warned.</div>
+                                <div><strong>Channel:</strong> #general-chat</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 text-[11px] text-slate-400">
+                            <i class="fa-solid fa-lock text-warden-cyan"></i>
+                            <span>Protected by Warden Security Engine v4.8</span>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'antinuke') {
+                content = `
+                    <div class="w-full max-w-lg glass-panel-glow-red rounded-2xl p-6 border-l-4 border-l-warden-red">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-warden-red/20 text-warden-red flex items-center justify-center font-bold text-sm">!</div>
+                            <div>
+                                <div class="text-xs font-bold text-white flex items-center space-x-2">
+                                    <span>CRITICAL SECURITY ALERT</span>
+                                    <span class="bg-red-500/20 text-red-400 text-[10px] px-1.5 py-0.5 rounded animate-pulse">ANTI-NUKE SHIELD</span>
+                                </div>
+                                <div class="text-[11px] text-slate-400">Today at 12:36 PM</div>
+                            </div>
+                        </div>
+                        <div class="text-sm text-slate-200 mb-4 bg-warden-900/80 p-4 rounded-xl border border-white/5">
+                            <p class="font-bold text-warden-red mb-1"><i class="fa-solid fa-shield-virus mr-2"></i>Mass Channel Deletion Detected!</p>
+                            <p class="text-xs text-slate-300 mb-3">User <span class="text-red-400 font-semibold">UnknownHacker#0000</span> deleted 4 channels in 2 seconds.</p>
+                            <div class="text-xs text-slate-400 border-t border-white/10 pt-2 space-y-1">
+                                <div><strong>Quarantine Status:</strong> User instantly banned & permissions revoked.</div>
+                                <div><strong>Rollback:</strong> Channel backups queued for restoration.</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 text-[11px] text-slate-400">
+                            <i class="fa-solid fa-triangle-exclamation text-warden-red"></i>
+                            <span>Server saved from destructive action attack.</span>
+                        </div>
+                    </div>
+                `;
+            } else if (type === 'lockdown') {
+                content = `
+                    <div class="w-full max-w-lg glass-panel-glow-cyan rounded-2xl p-6 border-l-4 border-l-warden-cyan">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-warden-cyan/20 text-warden-cyan flex items-center justify-center font-bold text-sm">🔒</div>
+                            <div>
+                                <div class="text-xs font-bold text-white flex items-center space-x-2">
+                                    <span>SERVER LOCKDOWN INITIATED</span>
+                                    <span class="bg-cyan-500/20 text-cyan-400 text-[10px] px-1.5 py-0.5 rounded">ADMIN OVERRIDE</span>
+                                </div>
+                                <div class="text-[11px] text-slate-400">Today at 12:36 PM</div>
+                            </div>
+                        </div>
+                        <div class="text-sm text-slate-200 mb-4 bg-warden-900/80 p-4 rounded-xl border border-white/5">
+                            <p class="font-bold text-warden-cyan mb-1"><i class="fa-solid fa-lock mr-2"></i>Global Lockdown Active</p>
+                            <p class="text-xs text-slate-300 mb-3">Administrator <span class="text-warden-cyan font-semibold">Owner#1234</span> executed <code class="code-font text-warden-cyan">!lockdown</code>.</p>
+                            <div class="text-xs text-slate-400 border-t border-white/10 pt-2 space-y-1">
+                                <div><strong>Effect:</strong> All 45 channels have been secured against unverified users.</div>
+                                <div><strong>Duration:</strong> Until manual lift command <code class="code-font">!lockdown disable</code>.</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 text-[11px] text-slate-400">
+                            <i class="fa-solid fa-shield-halved text-warden-cyan"></i>
+                            <span>Server security protocol successfully engaged.</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            output.innerHTML = content;
+        }
+
+        // Initialize Command Directory on load
+        window.onload = function() {
+            renderCommands();
+        };
+    </script>
+</body>
+</html>
